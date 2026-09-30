@@ -1,0 +1,6 @@
+{
+  "name": "Wakalat - Lawyer Case Management System",
+  "description": "Professional Legal Case Management System for lawyers and advocates to manage Clients, Cases, FIR Records, Court Hearings, Documents, and Payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,289 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with multi-tenant role, firm association, and subscription status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "firm_admin", "lawyer", "assistant", "admin", "clerk"] },
+        "firmId": { "type": "string" },
+        "firmName": { "type": "string" },
+        "accountType": { "type": "string", "enum": ["individual", "lawfirm"] },
+        "barLicenseNo": { "type": "string" },
+        "city": { "type": "string" },
+        "province": { "type": "string" },
+        "createdDate": { "type": "string" },
+        "onboardingCompleted": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "name", "email", "role", "firmId"]
+    },
+    "Firm": {
+      "title": "Firm",
+      "description": "Law firm or solo lawyer tenant workspace for complete commercial data isolation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "accountType": { "type": "string", "enum": ["individual", "lawfirm"] },
+        "plan": { "type": "string", "enum": ["starter", "professional", "enterprise"] },
+        "subscriptionStatus": { "type": "string", "enum": ["active", "trial", "expired", "suspended"] },
+        "trialEndsAt": { "type": "string" },
+        "officeAddress": { "type": "string" },
+        "city": { "type": "string" },
+        "province": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "ownerId", "accountType", "plan", "subscriptionStatus"]
+    },
+    "FirmMember": {
+      "title": "FirmMember",
+      "description": "Association linking a user to a firm with granular RBAC permissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "firmId": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "joinedAt": { "type": "string" },
+        "permissions": { "type": "object" }
+      },
+      "required": ["id", "userId", "firmId", "email", "role"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Law firm client record strictly partitioned within tenant firm",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "lawyerId": { "type": "string" },
+        "createdById": { "type": "string" },
+        "name": { "type": "string" },
+        "fatherOrHusbandName": { "type": "string" },
+        "cnic": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string" },
+        "city": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "mobile"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "Court case matter isolated by firm workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "lawyerId": { "type": "string" },
+        "createdById": { "type": "string" },
+        "clientId": { "type": "string" },
+        "caseNumber": { "type": "string" },
+        "caseTitle": { "type": "string" },
+        "courtName": { "type": "string" },
+        "caseType": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "caseNumber", "caseTitle", "courtName"]
+    },
+    "FIRRecord": {
+      "title": "FIRRecord",
+      "description": "Police FIR criminal record isolated by firm workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "lawyerId": { "type": "string" },
+        "createdById": { "type": "string" },
+        "firNumber": { "type": "string" },
+        "firYear": { "type": "string" },
+        "policeStation": { "type": "string" },
+        "sections": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "firNumber", "policeStation", "sections"]
+    },
+    "Hearing": {
+      "title": "Hearing",
+      "description": "Court hearing schedule isolated within firm workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "caseId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "hearingDate": { "type": "string" },
+        "courtName": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "caseId", "hearingDate"]
+    },
+    "DocumentItem": {
+      "title": "DocumentItem",
+      "description": "Legal exhibits and certified court copies isolated by firmId",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "userId": { "type": "string" },
+        "lawyerId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "uploadDate": { "type": "string" },
+        "format": { "type": "string" }
+      },
+      "required": ["id", "name", "type", "uploadDate"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Private chamber financial payment ledger isolated within firm workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "caseId": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "paymentDate": { "type": "string" },
+        "totalFee": { "type": "number" },
+        "paidAmount": { "type": "number" }
+      },
+      "required": ["id", "clientId", "receiptNumber", "paidAmount"]
+    },
+    "LegalServiceRecord": {
+      "title": "LegalServiceRecord",
+      "description": "Chamber administrative legal services isolated within firm workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "serviceTitle": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "serviceTitle", "category"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Tenant audit activity log tracking lawyer and assistant actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "firmId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "action", "timestamp"]
+    },
+    "PakistanLegalSection": {
+      "title": "PakistanLegalSection",
+      "description": "Central verified repository of Pakistan legal sections and statutory dafaat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "lawAct": { "type": "string" },
+        "sectionNumber": { "type": "string" },
+        "sectionTitle": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "lawAct", "sectionNumber", "sectionTitle", "category"]
+    },
+    "AuthorizedAccount": {
+      "title": "AuthorizedAccount",
+      "description": "Authorized lawyer user account and chamber credentials managed by Super Admin for cross-device real-time sync",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "firmId": { "type": "string" },
+        "firmName": { "type": "string" },
+        "role": { "type": "string" },
+        "plan": { "type": "string" },
+        "status": { "type": "string" },
+        "createdDate": { "type": "string" },
+        "connectedGmail": { "type": "string" },
+        "lastBackupDate": { "type": "string" },
+        "lastBackupDriveLink": { "type": "string" },
+        "dossierTitle": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "firmId"]
+    }
+  },
+  "firestore": {
+    "/authorizedAccounts/{accountId}": {
+      "schema": { "$ref": "#/entities/AuthorizedAccount" },
+      "description": "Authorized lawyer accounts synced real-time across devices for super admin and lawyer login"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Platform user profiles and firm associations"
+    },
+    "/firms/{firmId}": {
+      "schema": { "$ref": "#/entities/Firm" },
+      "description": "Multi-tenant law firm workspaces and subscriptions"
+    },
+    "/firms/{firmId}/members/{userId}": {
+      "schema": { "$ref": "#/entities/FirmMember" },
+      "description": "Firm member roles and permissions"
+    },
+    "/firms/{firmId}/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Tenant isolated clients collection"
+    },
+    "/firms/{firmId}/cases/{caseId}": {
+      "schema": { "$ref": "#/entities/Case" },
+      "description": "Tenant isolated cases collection"
+    },
+    "/firms/{firmId}/firs/{firId}": {
+      "schema": { "$ref": "#/entities/FIRRecord" },
+      "description": "Tenant isolated FIR records collection"
+    },
+    "/firms/{firmId}/hearings/{hearingId}": {
+      "schema": { "$ref": "#/entities/Hearing" },
+      "description": "Tenant isolated court hearings collection"
+    },
+    "/firms/{firmId}/documents/{documentId}": {
+      "schema": { "$ref": "#/entities/DocumentItem" },
+      "description": "Tenant isolated legal documents collection"
+    },
+    "/firms/{firmId}/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentRecord" },
+      "description": "Tenant isolated billing and payment records"
+    },
+    "/firms/{firmId}/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/LegalServiceRecord" },
+      "description": "Tenant isolated legal services collection"
+    },
+    "/firms/{firmId}/activityLogs/{activityId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Tenant isolated audit trail log collection"
+    },
+    "/legalSections/{sectionId}": {
+      "schema": { "$ref": "#/entities/PakistanLegalSection" },
+      "description": "Global verified Pakistan laws, acts, and sections repository"
+    }
+  }
+}

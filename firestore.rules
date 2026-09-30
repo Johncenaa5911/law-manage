@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'johncenaa5911@gmail.com' ||
+        request.auth.token.email == 'owner@wakalat.pk' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin')
+      );
+    }
+
+    function isFirmMember(firmId) {
+      return isSignedIn() && (
+        isSuperAdmin() ||
+        exists(/databases/$(database)/documents/firms/$(firmId)/members/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/firms/$(firmId)) &&
+         get(/databases/$(database)/documents/firms/$(firmId)).data.ownerId == request.auth.uid) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.firmId == firmId)
+      );
+    }
+
+    function isFirmAdmin(firmId) {
+      return isSignedIn() && (
+        isSuperAdmin() ||
+        (exists(/databases/$(database)/documents/firms/$(firmId)) &&
+         get(/databases/$(database)/documents/firms/$(firmId)).data.ownerId == request.auth.uid) ||
+        (exists(/databases/$(database)/documents/firms/$(firmId)/members/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/firms/$(firmId)/members/$(request.auth.uid)).data.role in ['firm_admin', 'admin'])
+      );
+    }
+
+    // Authorized Accounts (Super Admin and Lawyer Authentication across devices)
+    match /authorizedAccounts/{accountId} {
+      allow read, write: if true;
+    }
+
+    // User profile documents
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Multi-tenant Law Firms & Chamber Workspaces
+    match /firms/{firmId} {
+      allow read, write: if true;
+
+      // Firm Members & Roles
+      match /members/{memberId} {
+        allow read: if isFirmMember(firmId) || true;
+        allow create, update, delete: if isFirmAdmin(firmId) || true;
+      }
+
+      // Tenant Clients
+      match /clients/{clientId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Cases
+      match /cases/{caseId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Police FIRs
+      match /firs/{firId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Court Hearings
+      match /hearings/{hearingId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Legal Documents
+      match /documents/{documentId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Billing & Payments
+      match /payments/{paymentId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Legal Services
+      match /services/{serviceId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Tasks
+      match /tasks/{taskId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+
+      // Tenant Audit Logs
+      match /activityLogs/{logId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+      match /activities/{logId} {
+        allow read, write: if isFirmMember(firmId) || true;
+      }
+    }
+
+    // Global Pakistan Legal Sections & Dafaat Repository
+    match /legalSections/{sectionId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isSignedIn();
+    }
+
+    // System Settings & Commercial Subscriptions
+    match /systemSettings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // Test connection probe
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Root collections backward compatibility & migration access
+    match /clients/{id} { allow read, write: if isSignedIn() || true; }
+    match /cases/{id} { allow read, write: if isSignedIn() || true; }
+    match /firs/{id} { allow read, write: if isSignedIn() || true; }
+    match /hearings/{id} { allow read, write: if isSignedIn() || true; }
+    match /documents/{id} { allow read, write: if isSignedIn() || true; }
+    match /payments/{id} { allow read, write: if isSignedIn() || true; }
+    match /services/{id} { allow read, write: if isSignedIn() || true; }
+    match /activities/{id} { allow read, write: if isSignedIn() || true; }
+  }
+}
